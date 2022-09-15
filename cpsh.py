@@ -13,6 +13,7 @@ del major
 
 try:
     from websocket import create_connection as __create_connection__
+    from websocket import _exceptions
 except ImportError:
     print(
         'Please install websocket-client first.\nCommand: "pip3 install websocket-client"'
@@ -48,7 +49,13 @@ def __wsget__(q):
         global __ws__
         q.put(__ws__.recv())
     except KeyboardInterrupt:
-        q.put(0)
+        while True:
+            try:
+                q.put(0)
+            except:
+                pass
+    except _exceptions.WebSocketProtocolException:
+        pass
 
 
 def cpsh(ip, passwd):
@@ -80,8 +87,7 @@ def cpsh(ip, passwd):
                 while __isData__():
                     rx += str(__stdin__.read(1))
                 if rx != "":
-                    # __ws__.send(rx)
-                    pass
+                    __ws__.send(rx)
                 del rx
                 rec_thd.start()
                 rec_thd.join(timeout=0.03)
