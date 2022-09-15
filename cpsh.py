@@ -141,7 +141,7 @@ if __name__ == "__main__":
             elif i.startswith("-m=") or i.startswith("--mode="):
                 __mode__ = i[i.find("=") + 1 :]
                 if not (__mode__ in ["r", "rw"]):
-                    print("Invalid mode specified, defaulting to \"rw\"")
+                    print('Invalid mode specified, defaulting to "rw"')
         if not args[-1].startswith("-"):
             __ip__ = args[-1]
             if __passwd__ is not None:
