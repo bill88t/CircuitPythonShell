@@ -36,12 +36,13 @@ def __isData__():
     return __select__([__stdin__], [], [], 0) == ([__stdin__], [], [])
 
 
-version = "0.1"
+version = "0.2"
 
 __verbose__ = False
 __ip__ = None
 __passwd__ = None
 __ws__ = None
+__mode__ = "rw"
 
 
 def __wsget__(q):
@@ -73,6 +74,7 @@ def cpsh(ip, passwd):
         exit(1)
     if __verbose__:
         print("Connected.")
+        print("Mode: " + __mode__)
     del sf, passwd, ip
 
     old_settings = __termios__.tcgetattr(__stdin__)
@@ -83,12 +85,13 @@ def cpsh(ip, passwd):
             q = __Queue__()
             rec_thd = __Process__(target=__wsget__, name="ws_getter", args=(q,))
             try:
-                rx = ""
-                while __isData__():
-                    rx += str(__stdin__.read(1))
-                if rx != "":
-                    __ws__.send(rx)
-                del rx
+                if "w" in __mode__:
+                    rx = ""
+                    while __isData__():
+                        rx += str(__stdin__.read(1))
+                    if rx != "":
+                        __ws__.send(rx)
+                    del rx
                 rec_thd.start()
                 rec_thd.join(timeout=0.03)
                 rec_thd.terminate()
@@ -126,7 +129,8 @@ if __name__ == "__main__":
         + "Usage: cpsh.py [ARGS] [BOARD IP]\n\n"
         + "Arguments:\n\n"
         + "   -v, --verbose  : Be more verbose\n"
-        + '   -p, --password : Specify the password (-p="amogus")\n'
+        + '   -p, --password : Specify the password ex: -p="amogus"\n'
+        + '   -m, --mode     : Specify the mode, -m="r" for readonly, leave as is for "rw" (beta)\n'
     )
     if len(args) > 0:
         for i in args:
@@ -134,6 +138,10 @@ if __name__ == "__main__":
                 __verbose__ = True
             elif i.startswith("-p=") or i.startswith("--password="):
                 __passwd__ = i[i.find("=") + 1 :]
+            elif i.startswith("-m=") or i.startswith("--mode="):
+                __mode__ = i[i.find("=") + 1 :]
+                if not (__mode__ in ["r", "rw"]):
+                    print("Invalid mode specified, defaulting to \"rw\"")
         if not args[-1].startswith("-"):
             __ip__ = args[-1]
             if __passwd__ is not None:
